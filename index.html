@@ -328,13 +328,25 @@ function renderApp() {
     {tipo:"Corazón de tela",categoria:"Decoración",qty:7,aroma:"",notas:""},
   ];
 
-  async function seedIfEmpty(currentProducts) {
-    if (currentProducts.length > 0) return;
-    console.log("Cargando stock inicial...");
+  let seeded = false;
+  async function checkAndSeed(currentProducts) {
+    if (seeded) return;
+    // Si hay menos productos que el inventario inicial, es la primera vez
+    if (currentProducts.length >= STOCK_INICIAL.length) return;
+    seeded = true;
+    // Borrar los productos viejos primero
+    console.log("Limpiando productos viejos...");
+    for (const p of currentProducts) {
+      try { await deleteDoc(doc(db,'productos',p.id)); } catch(e){}
+    }
+    // Esperar un momento para que Firestore procese los borrados
+    await new Promise(r => setTimeout(r, 1000));
+    // Cargar el inventario completo
+    console.log("Cargando inventario completo...");
     for (const p of STOCK_INICIAL) {
       await addDoc(col, { ...p, vendido:0, showroom:0, precioLista:0, fecha:serverTimestamp() });
     }
-    console.log("Stock inicial cargado.");
+    console.log("Inventario cargado.");
   }
 
 
@@ -342,7 +354,7 @@ function renderApp() {
   onSnapshot(query(col, orderBy("fecha","desc")), snap => {
     products = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     document.getElementById('sync-dot').style.background = '#4CAF50';
-    seedIfEmpty(products);
+    checkAndSeed(products);
     renderAll();
   }, () => { document.getElementById('sync-dot').style.background = '#E53935'; });
 
