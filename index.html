@@ -286,10 +286,63 @@ function renderApp() {
 
   const BASE_URL = location.origin + location.pathname;
 
+  /* ── Carga inicial de stock si Firebase está vacío ── */
+  const STOCK_INICIAL = [
+    // DIFUSORES
+    {tipo:"Refill para difusor",categoria:"Difusores",qty:16,aroma:"",notas:""},
+    {tipo:"Difusor con varillas (tapa dorada)",categoria:"Difusores",qty:8,aroma:"",notas:""},
+    {tipo:"Difusor con varillas (botella verde)",categoria:"Difusores",qty:6,aroma:"",notas:""},
+    {tipo:"Envases para difusor",categoria:"Difusores",qty:11,aroma:"",notas:""},
+    {tipo:"Spray textil",categoria:"Difusores",qty:4,aroma:"",notas:""},
+    {tipo:"Difusor textil",categoria:"Difusores",qty:1,aroma:"",notas:""},
+    {tipo:"Difusor para auto",categoria:"Difusores",qty:11,aroma:"",notas:""},
+    {tipo:"Flor difusora de yeso",categoria:"Difusores",qty:3,aroma:"",notas:""},
+    {tipo:"Flor difusora de tela",categoria:"Difusores",qty:12,aroma:"",notas:""},
+    // VELAS
+    {tipo:"Rosa de molde",categoria:"Velas",qty:2,aroma:"",notas:""},
+    {tipo:"Rosa grande de molde",categoria:"Velas",qty:1,aroma:"",notas:""},
+    {tipo:"Flor de loto",categoria:"Velas",qty:1,aroma:""},
+    {tipo:"Corazón de molde",categoria:"Velas",qty:2,aroma:"",notas:""},
+    {tipo:"Vaso rombos",categoria:"Velas",qty:12,aroma:"",notas:""},
+    {tipo:"Frasco esmerilado",categoria:"Velas",qty:6,aroma:"",notas:""},
+    {tipo:"Cuenco de madera",categoria:"Velas",qty:4,aroma:"",notas:""},
+    {tipo:"Vaso de whisky con melts",categoria:"Velas",qty:10,aroma:"",notas:""},
+    {tipo:"Frasco con tapa de vidrio",categoria:"Velas",qty:2,aroma:"",notas:""},
+    {tipo:"Frasco chico",categoria:"Velas",qty:6,aroma:"",notas:""},
+    {tipo:"Caramelero chico",categoria:"Velas",qty:3,aroma:"",notas:""},
+    {tipo:"Vaso alto con flor",categoria:"Velas",qty:1,aroma:"",notas:""},
+    // JABONES
+    {tipo:"Jabón Vainilla",categoria:"Jabones",qty:1,aroma:"Vainilla",notas:""},
+    {tipo:"Jabón Moka",categoria:"Jabones",qty:2,aroma:"Moka",notas:""},
+    {tipo:"Jabón Manzana y Canela",categoria:"Jabones",qty:3,aroma:"Manzana y Canela",notas:""},
+    {tipo:"Promo x2 jabones",categoria:"Jabones",qty:7,aroma:"",notas:"Pack x2"},
+    {tipo:"Jabón individual",categoria:"Jabones",qty:4,aroma:"",notas:""},
+    // SAHUMERIOS Y DEFUMACIÓN
+    {tipo:"Bombas de defumación",categoria:"Sahumerios y Defumación",qty:14,aroma:"",notas:""},
+    {tipo:"Sahumerios pack x15",categoria:"Sahumerios y Defumación",qty:12,aroma:"",notas:"Pack x15"},
+    {tipo:"Sahumerios pack x6",categoria:"Sahumerios y Defumación",qty:12,aroma:"",notas:"Pack x6"},
+    {tipo:"Sahumerios tibetanos",categoria:"Sahumerios y Defumación",qty:3,aroma:"",notas:""},
+    // DECORACIÓN
+    {tipo:"Atrapasol grande",categoria:"Decoración",qty:2,aroma:"",notas:""},
+    {tipo:"Atrapasueños",categoria:"Decoración",qty:2,aroma:"",notas:""},
+    {tipo:"Corazón de tela",categoria:"Decoración",qty:7,aroma:"",notas:""},
+  ];
+
+  async function seedIfEmpty(currentProducts) {
+    if (currentProducts.length > 0) return;
+    console.log("Cargando stock inicial...");
+    for (const p of STOCK_INICIAL) {
+      await addDoc(col, { ...p, vendido:0, showroom:0, precioLista:0, fecha:serverTimestamp() });
+    }
+    console.log("Stock inicial cargado.");
+  }
+
+
   /* ── Firestore listeners ── */
   onSnapshot(query(col, orderBy("fecha","desc")), snap => {
     products = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     document.getElementById('sync-dot').style.background = '#4CAF50';
+    seedIfEmpty(products);
     renderAll();
   }, () => { document.getElementById('sync-dot').style.background = '#E53935'; });
 
